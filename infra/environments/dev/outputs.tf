@@ -52,3 +52,53 @@ output "cognito_token_endpoint" {
   description = "Hosted UI token endpoint for the Cognito user pool."
   value       = module.cognito.token_endpoint
 }
+
+output "dynamodb_table_name" {
+  description = "DynamoDB table name for the dev environment."
+  value       = module.dynamodb.table_name
+}
+
+output "dynamodb_table_arn" {
+  description = "DynamoDB table ARN for the dev environment."
+  value       = module.dynamodb.table_arn
+}
+
+output "dynamodb_billing_mode" {
+  description = "Billing mode for the DynamoDB table."
+  value       = module.dynamodb.billing_mode
+}
+
+output "dynamodb_hash_key" {
+  description = "Primary partition key name for the DynamoDB table."
+  value       = module.dynamodb.hash_key
+}
+
+output "dynamodb_range_key" {
+  description = "Primary sort key name for the DynamoDB table."
+  value       = module.dynamodb.range_key
+}
+
+output "dynamodb_gsi1_name" {
+  description = "First global secondary index name for the DynamoDB table."
+  value       = module.dynamodb.gsi1_name
+}
+
+output "dynamodb_gsi1_hash_key" {
+  description = "First global secondary index partition key name."
+  value       = module.dynamodb.gsi1_hash_key
+}
+
+output "dynamodb_gsi1_range_key" {
+  description = "First global secondary index sort key name."
+  value       = module.dynamodb.gsi1_range_key
+}
+
+output "dynamodb_stream_enabled" {
+  description = "Whether DynamoDB Streams are enabled for the table."
+  value       = module.dynamodb.stream_enabled
+}
+
+output "dynamodb_stream_arn" {
+  description = "DynamoDB stream ARN, if streams are enabled."
+  value       = module.dynamodb.stream_arn
+}

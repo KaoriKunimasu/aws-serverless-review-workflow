@@ -68,3 +68,71 @@ variable "cognito_domain_prefix" {
     error_message = "cognito_domain_prefix must contain only lowercase letters, numbers, and hyphens."
   }
 }
+
+variable "dynamodb_billing_mode" {
+  description = "Billing mode for the DynamoDB table in the dev environment."
+  type        = string
+  default     = "PAY_PER_REQUEST"
+
+  validation {
+    condition     = var.dynamodb_billing_mode == "PAY_PER_REQUEST"
+    error_message = "dynamodb_billing_mode must be PAY_PER_REQUEST in this environment."
+  }
+}
+
+variable "dynamodb_point_in_time_recovery_enabled" {
+  description = "Whether point-in-time recovery is enabled for the DynamoDB table."
+  type        = bool
+  default     = true
+}
+
+variable "dynamodb_deletion_protection_enabled" {
+  description = "Whether deletion protection is enabled for the DynamoDB table."
+  type        = bool
+  default     = false
+}
+
+variable "dynamodb_table_class" {
+  description = "Table class for the DynamoDB table."
+  type        = string
+  default     = "STANDARD"
+
+  validation {
+    condition     = contains(["STANDARD", "STANDARD_INFREQUENT_ACCESS"], var.dynamodb_table_class)
+    error_message = "dynamodb_table_class must be STANDARD or STANDARD_INFREQUENT_ACCESS."
+  }
+}
+
+variable "dynamodb_stream_enabled" {
+  description = "Whether DynamoDB Streams are enabled for the table."
+  type        = bool
+  default     = false
+}
+
+variable "dynamodb_stream_view_type" {
+  description = "Stream view type for the DynamoDB table when streams are enabled."
+  type        = string
+  default     = "NEW_AND_OLD_IMAGES"
+
+  validation {
+    condition = contains([
+      "KEYS_ONLY",
+      "NEW_IMAGE",
+      "OLD_IMAGE",
+      "NEW_AND_OLD_IMAGES",
+    ], var.dynamodb_stream_view_type)
+    error_message = "dynamodb_stream_view_type must be a valid DynamoDB stream view type."
+  }
+}
+
+variable "dynamodb_ttl_enabled" {
+  description = "Whether TTL is enabled for the DynamoDB table."
+  type        = bool
+  default     = false
+}
+
+variable "dynamodb_ttl_attribute_name" {
+  description = "TTL attribute name for the DynamoDB table."
+  type        = string
+  default     = "ExpiresAt"
+}
