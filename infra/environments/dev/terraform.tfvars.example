@@ -3,5 +3,15 @@ environment  = "dev"
 aws_region   = "ap-southeast-2"
 
 allowed_account_ids = [
-  "51524142590",
+  "515241425905",
 ]
+
+cognito_callback_urls = [
+  "http://localhost:5173/login",
+]
+
+cognito_logout_urls = [
+  "http://localhost:5173/login",
+]
+
+cognito_domain_prefix = "review-workflow-dev-515241425905"
