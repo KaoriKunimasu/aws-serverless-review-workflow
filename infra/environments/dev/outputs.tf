@@ -128,6 +128,11 @@ output "api_log_group_arn" {
   value       = module.api.log_group_arn
 }
 
+output "api_jwt_authorizer_id" {
+  description = "JWT authorizer ID for the dev HTTP API."
+  value       = module.api.jwt_authorizer_id
+}
+
 output "api_route_ids" {
   description = "Map of API route IDs keyed by route key."
   value       = module.api.route_ids

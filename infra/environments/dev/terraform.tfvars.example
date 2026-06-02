@@ -32,8 +32,8 @@ lambda_memory_size           = 256
 lambda_log_retention_in_days = 14
 lambda_log_level             = "INFO"
 
-api_stage_name           = "$default"
-api_auto_deploy          = true
+api_stage_name            = "$default"
+api_auto_deploy           = true
 api_log_retention_in_days = 14
 
 api_cors_allow_origins = [
@@ -55,3 +55,11 @@ api_cors_expose_headers = []
 
 api_cors_allow_credentials = false
 api_cors_max_age           = 0
+
+api_enable_jwt_authorizer = true
+
+api_jwt_authorizer_name = "cognito-jwt-authorizer"
+
+api_jwt_identity_source = [
+  "$request.header.Authorization",
+]

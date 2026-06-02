@@ -159,18 +159,24 @@ module "api" {
   cors_allow_credentials = var.api_cors_allow_credentials
   cors_max_age           = var.api_cors_max_age
 
+  create_jwt_authorizer          = var.api_enable_jwt_authorizer
+  jwt_authorizer_name            = var.api_jwt_authorizer_name
+  jwt_authorizer_identity_source = var.api_jwt_identity_source
+  jwt_authorizer_audience        = [module.cognito.user_pool_client_id]
+  jwt_authorizer_issuer          = module.cognito.issuer_url
+
   routes = {
     "GET /requests" = {
       integration_uri      = module.list_requests_function.invoke_arn
       function_name        = module.list_requests_function.function_name
-      authorization_type   = "NONE"
+      authorization_type   = var.api_enable_jwt_authorizer ? "JWT" : "NONE"
       authorization_scopes = []
     }
 
     "POST /requests" = {
       integration_uri      = module.create_request_function.invoke_arn
       function_name        = module.create_request_function.function_name
-      authorization_type   = "NONE"
+      authorization_type   = var.api_enable_jwt_authorizer ? "JWT" : "NONE"
       authorization_scopes = []
     }
   }
