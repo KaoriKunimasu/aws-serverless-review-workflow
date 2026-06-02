@@ -49,3 +49,5 @@ tmp/
 app/functions/.dist/*
 !app/functions/.dist/.gitkeep
 app/functions/*.zip
+
+infra/environments/dev/*.zip
