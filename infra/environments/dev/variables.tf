@@ -249,3 +249,21 @@ variable "api_cors_max_age" {
     error_message = "api_cors_max_age must be greater than or equal to 0."
   }
 }
+
+variable "api_enable_jwt_authorizer" {
+  description = "Whether the dev API enables a JWT authorizer."
+  type        = bool
+  default     = true
+}
+
+variable "api_jwt_authorizer_name" {
+  description = "Name of the JWT authorizer for the dev API."
+  type        = string
+  default     = "cognito-jwt-authorizer"
+}
+
+variable "api_jwt_identity_source" {
+  description = "Identity source list for the dev API JWT authorizer."
+  type        = list(string)
+  default     = ["$request.header.Authorization"]
+}
