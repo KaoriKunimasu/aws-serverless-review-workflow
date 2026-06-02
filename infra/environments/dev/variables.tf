@@ -182,3 +182,70 @@ variable "lambda_log_level" {
     error_message = "lambda_log_level must be DEBUG, INFO, WARNING, ERROR, or CRITICAL."
   }
 }
+
+variable "api_stage_name" {
+  description = "Stage name for the dev HTTP API."
+  type        = string
+  default     = "$default"
+}
+
+variable "api_auto_deploy" {
+  description = "Whether the dev HTTP API stage auto-deploys."
+  type        = bool
+  default     = true
+}
+
+variable "api_log_retention_in_days" {
+  description = "CloudWatch log retention in days for API access logs."
+  type        = number
+  default     = 14
+
+  validation {
+    condition = contains(
+      [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653],
+      var.api_log_retention_in_days
+    )
+    error_message = "api_log_retention_in_days must be a supported CloudWatch Logs retention value."
+  }
+}
+
+variable "api_cors_allow_origins" {
+  description = "Allowed origins for API CORS."
+  type        = list(string)
+  default     = ["http://localhost:5173"]
+}
+
+variable "api_cors_allow_methods" {
+  description = "Allowed methods for API CORS."
+  type        = list(string)
+  default     = ["GET", "POST", "OPTIONS"]
+}
+
+variable "api_cors_allow_headers" {
+  description = "Allowed headers for API CORS."
+  type        = list(string)
+  default     = ["authorization", "content-type"]
+}
+
+variable "api_cors_expose_headers" {
+  description = "Headers exposed by API CORS."
+  type        = list(string)
+  default     = []
+}
+
+variable "api_cors_allow_credentials" {
+  description = "Whether API CORS allows credentials."
+  type        = bool
+  default     = false
+}
+
+variable "api_cors_max_age" {
+  description = "API CORS max age in seconds."
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.api_cors_max_age >= 0
+    error_message = "api_cors_max_age must be greater than or equal to 0."
+  }
+}

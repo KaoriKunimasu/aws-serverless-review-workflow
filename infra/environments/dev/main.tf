@@ -141,3 +141,44 @@ module "create_request_function" {
     }
   )
 }
+
+module "api" {
+  source = "../../modules/api"
+
+  name        = "${local.name_prefix}-api"
+  description = "HTTP API for the dev environment."
+  stage_name  = var.api_stage_name
+  auto_deploy = var.api_auto_deploy
+
+  log_retention_in_days = var.api_log_retention_in_days
+
+  cors_allow_origins     = var.api_cors_allow_origins
+  cors_allow_methods     = var.api_cors_allow_methods
+  cors_allow_headers     = var.api_cors_allow_headers
+  cors_expose_headers    = var.api_cors_expose_headers
+  cors_allow_credentials = var.api_cors_allow_credentials
+  cors_max_age           = var.api_cors_max_age
+
+  routes = {
+    "GET /requests" = {
+      integration_uri      = module.list_requests_function.invoke_arn
+      function_name        = module.list_requests_function.function_name
+      authorization_type   = "NONE"
+      authorization_scopes = []
+    }
+
+    "POST /requests" = {
+      integration_uri      = module.create_request_function.invoke_arn
+      function_name        = module.create_request_function.function_name
+      authorization_type   = "NONE"
+      authorization_scopes = []
+    }
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Component = "api"
+    }
+  )
+}
