@@ -1,22 +1,17 @@
 variable "project_name" {
-  description = "Application name used as the base for resource names and tags."
+  description = "Project name used for naming and tags."
   type        = string
   default     = "review-workflow"
-
-  validation {
-    condition     = length(trim(var.project_name, " ")) > 0
-    error_message = "project_name must not be empty."
-  }
 }
 
 variable "environment" {
-  description = "Environment name for this root module."
+  description = "Deployment environment name."
   type        = string
   default     = "dev"
 
   validation {
     condition     = var.environment == "dev"
-    error_message = "environment must be set to dev in this root module."
+    error_message = "The dev environment configuration only supports environment = \"dev\"."
   }
 }
 
@@ -27,73 +22,54 @@ variable "aws_region" {
 }
 
 variable "allowed_account_ids" {
-  description = "Optional list of AWS account IDs allowed for this root module."
+  description = "AWS account IDs allowed for provider authentication."
   type        = list(string)
   default     = ["515241425905"]
 }
 
 variable "cognito_callback_urls" {
-  description = "Allowed callback URLs for the Cognito app client in the dev environment."
+  description = "Allowed Cognito callback URLs."
   type        = list(string)
-  default = [
-    "http://localhost:5173/login",
-  ]
-
-  validation {
-    condition     = length(var.cognito_callback_urls) > 0
-    error_message = "cognito_callback_urls must contain at least one URL."
-  }
+  default     = ["http://localhost:5173/login"]
 }
 
 variable "cognito_logout_urls" {
-  description = "Allowed logout URLs for the Cognito app client in the dev environment."
+  description = "Allowed Cognito logout URLs."
   type        = list(string)
-  default = [
-    "http://localhost:5173/login",
-  ]
-
-  validation {
-    condition     = length(var.cognito_logout_urls) > 0
-    error_message = "cognito_logout_urls must contain at least one URL."
-  }
+  default     = ["http://localhost:5173/login"]
 }
 
 variable "cognito_domain_prefix" {
-  description = "Hosted UI domain prefix for the Cognito user pool in the dev environment."
+  description = "Cognito hosted UI domain prefix for the dev environment."
   type        = string
   default     = "review-workflow-dev-515241425905"
-
-  validation {
-    condition     = var.cognito_domain_prefix == "" || can(regex("^[a-z0-9-]+$", var.cognito_domain_prefix))
-    error_message = "cognito_domain_prefix must contain only lowercase letters, numbers, and hyphens."
-  }
 }
 
 variable "dynamodb_billing_mode" {
-  description = "Billing mode for the DynamoDB table in the dev environment."
+  description = "DynamoDB billing mode."
   type        = string
   default     = "PAY_PER_REQUEST"
 
   validation {
-    condition     = var.dynamodb_billing_mode == "PAY_PER_REQUEST"
-    error_message = "dynamodb_billing_mode must be PAY_PER_REQUEST in this environment."
+    condition     = contains(["PAY_PER_REQUEST", "PROVISIONED"], var.dynamodb_billing_mode)
+    error_message = "dynamodb_billing_mode must be PAY_PER_REQUEST or PROVISIONED."
   }
 }
 
 variable "dynamodb_point_in_time_recovery_enabled" {
-  description = "Whether point-in-time recovery is enabled for the DynamoDB table."
+  description = "Whether point-in-time recovery is enabled for the workflow table."
   type        = bool
   default     = true
 }
 
 variable "dynamodb_deletion_protection_enabled" {
-  description = "Whether deletion protection is enabled for the DynamoDB table."
+  description = "Whether deletion protection is enabled for the workflow table."
   type        = bool
   default     = false
 }
 
 variable "dynamodb_table_class" {
-  description = "Table class for the DynamoDB table."
+  description = "DynamoDB table class."
   type        = string
   default     = "STANDARD"
 
@@ -104,35 +80,105 @@ variable "dynamodb_table_class" {
 }
 
 variable "dynamodb_stream_enabled" {
-  description = "Whether DynamoDB Streams are enabled for the table."
+  description = "Whether DynamoDB Streams are enabled."
   type        = bool
   default     = false
 }
 
 variable "dynamodb_stream_view_type" {
-  description = "Stream view type for the DynamoDB table when streams are enabled."
+  description = "DynamoDB stream view type when streams are enabled."
   type        = string
   default     = "NEW_AND_OLD_IMAGES"
 
   validation {
-    condition = contains([
-      "KEYS_ONLY",
-      "NEW_IMAGE",
-      "OLD_IMAGE",
-      "NEW_AND_OLD_IMAGES",
-    ], var.dynamodb_stream_view_type)
+    condition = contains(
+      [
+        "KEYS_ONLY",
+        "NEW_IMAGE",
+        "OLD_IMAGE",
+        "NEW_AND_OLD_IMAGES"
+      ],
+      var.dynamodb_stream_view_type
+    )
     error_message = "dynamodb_stream_view_type must be a valid DynamoDB stream view type."
   }
 }
 
 variable "dynamodb_ttl_enabled" {
-  description = "Whether TTL is enabled for the DynamoDB table."
+  description = "Whether TTL is enabled for the workflow table."
   type        = bool
   default     = false
 }
 
 variable "dynamodb_ttl_attribute_name" {
-  description = "TTL attribute name for the DynamoDB table."
+  description = "TTL attribute name for the workflow table."
   type        = string
-  default     = "ExpiresAt"
+  default     = "expiresAt"
+}
+
+variable "lambda_runtime" {
+  description = "Lambda runtime used for request functions."
+  type        = string
+  default     = "python3.12"
+}
+
+variable "lambda_architectures" {
+  description = "Lambda instruction set architectures."
+  type        = list(string)
+  default     = ["x86_64"]
+
+  validation {
+    condition = alltrue([
+      for architecture in var.lambda_architectures :
+      contains(["x86_64", "arm64"], architecture)
+    ])
+    error_message = "lambda_architectures may contain only x86_64 or arm64."
+  }
+}
+
+variable "lambda_timeout_seconds" {
+  description = "Lambda timeout in seconds."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.lambda_timeout_seconds >= 1 && var.lambda_timeout_seconds <= 900
+    error_message = "lambda_timeout_seconds must be between 1 and 900."
+  }
+}
+
+variable "lambda_memory_size" {
+  description = "Lambda memory size in MB."
+  type        = number
+  default     = 256
+
+  validation {
+    condition     = var.lambda_memory_size >= 128 && var.lambda_memory_size <= 10240
+    error_message = "lambda_memory_size must be between 128 and 10240."
+  }
+}
+
+variable "lambda_log_retention_in_days" {
+  description = "CloudWatch log retention in days for Lambda log groups."
+  type        = number
+  default     = 14
+
+  validation {
+    condition = contains(
+      [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653],
+      var.lambda_log_retention_in_days
+    )
+    error_message = "lambda_log_retention_in_days must be a supported CloudWatch Logs retention value."
+  }
+}
+
+variable "lambda_log_level" {
+  description = "Application log level passed to Lambda functions."
+  type        = string
+  default     = "INFO"
+
+  validation {
+    condition     = contains(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], var.lambda_log_level)
+    error_message = "lambda_log_level must be DEBUG, INFO, WARNING, ERROR, or CRITICAL."
+  }
 }
