@@ -31,3 +31,27 @@ lambda_timeout_seconds       = 10
 lambda_memory_size           = 256
 lambda_log_retention_in_days = 14
 lambda_log_level             = "INFO"
+
+api_stage_name           = "$default"
+api_auto_deploy          = true
+api_log_retention_in_days = 14
+
+api_cors_allow_origins = [
+  "http://localhost:5173",
+]
+
+api_cors_allow_methods = [
+  "GET",
+  "POST",
+  "OPTIONS",
+]
+
+api_cors_allow_headers = [
+  "authorization",
+  "content-type",
+]
+
+api_cors_expose_headers = []
+
+api_cors_allow_credentials = false
+api_cors_max_age           = 0
