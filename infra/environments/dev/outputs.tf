@@ -92,3 +92,48 @@ output "create_request_invoke_arn" {
   description = "Lambda invoke ARN for creating workflow requests."
   value       = module.create_request_function.invoke_arn
 }
+
+output "api_id" {
+  description = "HTTP API ID for the dev environment."
+  value       = module.api.api_id
+}
+
+output "api_endpoint" {
+  description = "HTTP API endpoint for the dev environment."
+  value       = module.api.api_endpoint
+}
+
+output "api_execution_arn" {
+  description = "HTTP API execution ARN for the dev environment."
+  value       = module.api.api_execution_arn
+}
+
+output "api_stage_name" {
+  description = "HTTP API stage name for the dev environment."
+  value       = module.api.stage_name
+}
+
+output "api_stage_invoke_url" {
+  description = "HTTP API invoke URL for the dev environment."
+  value       = module.api.stage_invoke_url
+}
+
+output "api_log_group_name" {
+  description = "CloudWatch log group name for API access logs."
+  value       = module.api.log_group_name
+}
+
+output "api_log_group_arn" {
+  description = "CloudWatch log group ARN for API access logs."
+  value       = module.api.log_group_arn
+}
+
+output "api_route_ids" {
+  description = "Map of API route IDs keyed by route key."
+  value       = module.api.route_ids
+}
+
+output "api_integration_ids" {
+  description = "Map of API integration IDs keyed by route key."
+  value       = module.api.integration_ids
+}
