@@ -45,3 +45,7 @@ override.tf.json
 # Misc
 tmp/
 .cache/
+
+app/functions/.dist/*
+!app/functions/.dist/.gitkeep
+app/functions/*.zip
