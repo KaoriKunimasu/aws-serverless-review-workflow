@@ -1,19 +1,57 @@
-const mockRequests = [
-  {
-    requestId: "req-001",
-    title: "Review API Gateway terminology",
-    status: "submitted",
-    requestType: "term",
-  },
-  {
-    requestId: "req-002",
-    title: "Update authentication wording",
-    status: "in_review",
-    requestType: "change",
-  },
-];
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { listRequests } from "../lib/api/requests";
+import { ApiError } from "../lib/api/client";
+import { useAuth } from "../app/providers/AuthProvider";
+import type { WorkflowRequest } from "../types/request";
+
+function formatStatusLabel(status?: string): string {
+  if (!status) {
+    return "submitted";
+  }
+
+  return status.replaceAll("_", " ");
+}
 
 export function RequestsPage() {
+  const { session } = useAuth();
+  const accessToken = session?.accessToken ?? "";
+
+  const [requests, setRequests] = useState<WorkflowRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const hasAccessToken = useMemo(() => accessToken.length > 0, [accessToken]);
+
+  const loadRequests = useCallback(async () => {
+    if (!hasAccessToken) {
+      setErrorMessage("Access token is missing. Please sign in again.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setErrorMessage("");
+
+      const response = await listRequests(accessToken);
+      setRequests(response.items);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Failed to load requests.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, hasAccessToken]);
+
+  useEffect(() => {
+    void loadRequests();
+  }, [loadRequests]);
+
   return (
     <section className="page">
       <header className="page-header">
@@ -40,7 +78,21 @@ export function RequestsPage() {
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
+
+          <button type="button" onClick={() => void loadRequests()} disabled={loading}>
+            {loading ? "Loading..." : "Refresh"}
+          </button>
         </div>
+
+        {errorMessage ? (
+          <div className="card" style={{ marginBottom: "1rem", color: "#b00020" }}>
+            {errorMessage}
+          </div>
+        ) : null}
+
+        {!loading && !errorMessage && requests.length === 0 ? (
+          <div className="card">No requests found yet.</div>
+        ) : null}
 
         <div className="table-wrapper">
           <table className="table">
@@ -48,23 +100,33 @@ export function RequestsPage() {
               <tr>
                 <th>Request ID</th>
                 <th>Title</th>
-                <th>Type</th>
+                <th>Source</th>
+                <th>Target</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {mockRequests.map((request) => (
+              {requests.map((request) => (
                 <tr key={request.requestId}>
                   <td>{request.requestId}</td>
                   <td>{request.title}</td>
-                  <td>{request.requestType}</td>
+                  <td>{request.sourceLanguage}</td>
+                  <td>{request.targetLanguage}</td>
                   <td>
-                    <span className={`status-badge status-badge--${request.status}`}>
-                      {request.status}
+                    <span
+                      className={`status-badge status-badge--${request.status ?? "submitted"}`}
+                    >
+                      {formatStatusLabel(request.status)}
                     </span>
                   </td>
                 </tr>
               ))}
+
+              {loading ? (
+                <tr>
+                  <td colSpan={5}>Loading requests...</td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>

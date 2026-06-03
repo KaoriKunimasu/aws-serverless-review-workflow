@@ -53,8 +53,8 @@ def build_item(payload: dict, created_by: str) -> dict:
     timestamp = datetime.now(timezone.utc).isoformat()
 
     return {
-        "pk": f"REQUEST#{request_id}",
-        "sk": "METADATA",
+        "PK": f"REQUEST#{request_id}",
+        "SK": "METADATA",
         "requestId": request_id,
         "title": payload["title"].strip(),
         "requestType": payload["requestType"].strip(),
@@ -95,10 +95,10 @@ def lambda_handler(event, context):
     try:
         table.put_item(
             Item=item,
-            ConditionExpression="attribute_not_exists(pk)",
+            ConditionExpression="attribute_not_exists(PK)",
         )
     except table.meta.client.exceptions.ConditionalCheckFailedException:
-        logger.warning("Request ID collision detected for pk=%s", item["pk"])
+        logger.warning("Request ID collision detected for PK=%s", item["pk"])
         return error_response(409, "A request with the same ID already exists.")
     except ClientError:
         logger.exception("Failed to create workflow request.")
