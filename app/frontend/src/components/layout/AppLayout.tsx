@@ -1,48 +1,67 @@
 import { NavLink, Outlet } from "react-router-dom";
 
-const navItems = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/requests", label: "Requests" },
-  { to: "/requests/new", label: "New Request" },
-];
+import { useAuth } from "../../app/providers/AuthProvider";
+
+function getDisplayName(claims: Record<string, unknown>): string {
+  const email = claims.email;
+  const cognitoUsername = claims["cognito:username"];
+  const username = claims.username;
+  const subject = claims.sub;
+
+  if (typeof email === "string" && email.trim() !== "") {
+    return email;
+  }
+
+  if (typeof cognitoUsername === "string" && cognitoUsername.trim() !== "") {
+    return cognitoUsername;
+  }
+
+  if (typeof username === "string" && username.trim() !== "") {
+    return username;
+  }
+
+  if (typeof subject === "string" && subject.trim() !== "") {
+    return subject;
+  }
+
+  return "Signed-in user";
+}
 
 export function AppLayout() {
-  return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="sidebar__brand">
-          <h1>Review Workflow</h1>
-          <p>Internal request tracking</p>
-        </div>
+  const { claims, logout } = useAuth();
+  const displayName = getDisplayName(claims);
 
-        <nav className="sidebar__nav" aria-label="Main navigation">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                isActive ? "nav-link nav-link--active" : "nav-link"
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+  return (
+    <div style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "240px 1fr" }}>
+      <aside style={{ padding: "1.5rem", borderRight: "1px solid #ddd" }}>
+        <h2 style={{ marginTop: 0 }}>Review Workflow</h2>
+        <nav style={{ display: "grid", gap: "0.75rem" }}>
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          <NavLink to="/requests">Requests</NavLink>
+          <NavLink to="/requests/new">New Request</NavLink>
         </nav>
       </aside>
 
-      <div className="main-shell">
-        <header className="topbar">
+      <div>
+        <header
+          style={{
+            padding: "1rem 1.5rem",
+            borderBottom: "1px solid #ddd",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "1rem",
+          }}
+        >
           <div>
-            <h2 className="topbar__title">Review Workflow</h2>
-            <p className="topbar__subtitle">Serverless request management</p>
+            <strong>Signed in as:</strong> {displayName}
           </div>
-
-          <div className="topbar__actions">
-            <span className="user-badge">Signed in user</span>
-          </div>
+          <button type="button" onClick={logout}>
+            Sign out
+          </button>
         </header>
 
-        <main className="content">
+        <main style={{ padding: "1.5rem" }}>
           <Outlet />
         </main>
       </div>

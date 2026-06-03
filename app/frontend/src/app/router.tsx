@@ -1,5 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+
+import { ProtectedRoute } from "../components/auth/ProtectedRoute";
 import { AppLayout } from "../components/layout/AppLayout";
+import { AuthCallbackPage } from "../pages/AuthCallbackPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { LoginPage } from "../pages/LoginPage";
 import { NewRequestPage } from "../pages/NewRequestPage";
@@ -12,29 +15,42 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
+    path: "/auth/callback",
+    element: <AuthCallbackPage />,
+  },
+  {
     path: "/",
-    element: <AppLayout />,
+    element: <ProtectedRoute />,
     children: [
       {
-        index: true,
-        element: <Navigate to="/dashboard" replace />,
-      },
-      {
-        path: "dashboard",
-        element: <DashboardPage />,
-      },
-      {
-        path: "requests",
-        element: <RequestsPage />,
-      },
-      {
-        path: "requests/new",
-        element: <NewRequestPage />,
-      },
-      {
-        path: "requests/:requestId",
-        element: <RequestDetailPage />,
+        element: <AppLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/dashboard" replace />,
+          },
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
+          },
+          {
+            path: "requests",
+            element: <RequestsPage />,
+          },
+          {
+            path: "requests/new",
+            element: <NewRequestPage />,
+          },
+          {
+            path: "requests/:requestId",
+            element: <RequestDetailPage />,
+          },
+        ],
       },
     ],
+  },
+  {
+    path: "*",
+    element: <Navigate to="/dashboard" replace />,
   },
 ]);
