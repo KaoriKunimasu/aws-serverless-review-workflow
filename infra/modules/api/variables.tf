@@ -111,7 +111,7 @@ variable "jwt_authorizer_issuer" {
   default     = null
 
   validation {
-    condition     = var.create_jwt_authorizer ? var.jwt_authorizer_issuer != null && trim(var.jwt_authorizer_issuer) != "" : true
+    condition     = var.create_jwt_authorizer ? var.jwt_authorizer_issuer != null && trimspace(var.jwt_authorizer_issuer) != "" : true
     error_message = "jwt_authorizer_issuer must be set when create_jwt_authorizer is true."
   }
 }

@@ -30,7 +30,7 @@ variable "allowed_account_ids" {
 variable "cognito_callback_urls" {
   description = "Allowed Cognito callback URLs."
   type        = list(string)
-  default     = ["http://localhost:5173/login"]
+  default     = ["http://localhost:5173/auth/callback"]
 }
 
 variable "cognito_logout_urls" {

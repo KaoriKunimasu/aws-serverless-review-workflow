@@ -10,6 +10,7 @@ SHARED_DIR = FUNCTIONS_DIR / "shared"
 FUNCTION_NAMES = [
     "list_requests",
     "create_request",
+    "get_request_detail",
 ]
 
 
