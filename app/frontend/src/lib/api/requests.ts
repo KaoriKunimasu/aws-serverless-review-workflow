@@ -1,10 +1,37 @@
 import { apiFetch } from "./client";
-import type {
-  CreateRequestPayload,
-  CreateRequestResponse,
-  ListRequestsResponse,
-  WorkflowRequest,
-} from "../../types/request";
+import type { ListRequestsResponse, WorkflowRequest } from "../../types/request";
+
+export type CreateRequestPayload = {
+  title: string;
+  requestType: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  sourceText: string;
+  targetText?: string;
+  category?: string;
+  reviewerNote?: string;
+};
+
+export type RequestDetail = {
+  requestId: string;
+  title: string;
+  requestType: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  sourceText: string;
+  targetText: string;
+  category: string;
+  status: string;
+  reviewerNote: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateRequestResponse = {
+  item: RequestDetail;
+  message?: string;
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -26,41 +53,56 @@ function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" ? value : fallback;
 }
 
-function normalizeRequest(value: unknown): WorkflowRequest {
+function normalizeListItem(value: unknown): WorkflowRequest {
   const source = isRecord(value) ? value : {};
 
   return {
     requestId: readString(
-      source.requestId ?? source.id ?? source.pk ?? source.request_id,
+      source.requestId ?? source.id ?? source.PK ?? source.request_id,
       "unknown-request-id",
     ),
-    title: readString(source.title ?? source.requestTitle, "Untitled request"),
+    title: readString(source.title, "Untitled request"),
     description: readString(
-      source.description ?? source.body ?? source.details,
+      source.description ?? source.sourceText ?? source.body,
       "",
     ),
     sourceLanguage: readString(
-      source.sourceLanguage ?? source.fromLanguage ?? source.source_language,
+      source.sourceLanguage ?? source.source_language,
       "ja",
     ),
     targetLanguage: readString(
-      source.targetLanguage ?? source.toLanguage ?? source.target_language,
+      source.targetLanguage ?? source.target_language,
       "en",
     ),
     status: readOptionalString(source.status),
-    createdAt: readString(
-      source.createdAt ?? source.created_at,
-      new Date(0).toISOString(),
-    ),
-    createdBy: readOptionalString(
-      source.createdBy ?? source.userId ?? source.created_by,
-    ),
+    createdAt: readString(source.createdAt, new Date(0).toISOString()),
+    createdBy: readOptionalString(source.createdBy),
+  };
+}
+
+function normalizeDetail(value: unknown): RequestDetail {
+  const source = isRecord(value) ? value : {};
+
+  return {
+    requestId: readString(source.requestId, "unknown-request-id"),
+    title: readString(source.title, "Untitled request"),
+    requestType: readString(source.requestType),
+    sourceLanguage: readString(source.sourceLanguage),
+    targetLanguage: readString(source.targetLanguage),
+    sourceText: readString(source.sourceText),
+    targetText: readString(source.targetText),
+    category: readString(source.category),
+    status: readString(source.status, "OPEN"),
+    reviewerNote: readString(source.reviewerNote),
+    createdBy: readString(source.createdBy),
+    createdAt: readString(source.createdAt, new Date(0).toISOString()),
+    updatedAt: readString(source.updatedAt, new Date(0).toISOString()),
   };
 }
 
 function normalizeListResponse(value: unknown): ListRequestsResponse {
   if (Array.isArray(value)) {
-    const items = value.map(normalizeRequest);
+    const items = value.map(normalizeListItem);
 
     return {
       items,
@@ -71,7 +113,7 @@ function normalizeListResponse(value: unknown): ListRequestsResponse {
 
   if (isRecord(value)) {
     const rawItems = Array.isArray(value.items) ? value.items : [];
-    const items = rawItems.map(normalizeRequest);
+    const items = rawItems.map(normalizeListItem);
 
     return {
       items,
@@ -90,14 +132,22 @@ function normalizeListResponse(value: unknown): ListRequestsResponse {
 function normalizeCreateResponse(value: unknown): CreateRequestResponse {
   if (isRecord(value) && value.item) {
     return {
-      item: normalizeRequest(value.item),
+      item: normalizeDetail(value.item),
       message: readOptionalString(value.message),
     };
   }
 
   return {
-    item: normalizeRequest(value),
+    item: normalizeDetail(value),
   };
+}
+
+function normalizeDetailResponse(value: unknown): RequestDetail {
+  if (isRecord(value) && value.item) {
+    return normalizeDetail(value.item);
+  }
+
+  return normalizeDetail(value);
 }
 
 export async function listRequests(
@@ -122,4 +172,16 @@ export async function createRequest(
   });
 
   return normalizeCreateResponse(response);
+}
+
+export async function getRequestDetail(
+  accessToken: string,
+  requestId: string,
+): Promise<RequestDetail> {
+  const response = await apiFetch<unknown>(`/requests/${requestId}`, {
+    method: "GET",
+    accessToken,
+  });
+
+  return normalizeDetailResponse(response);
 }
