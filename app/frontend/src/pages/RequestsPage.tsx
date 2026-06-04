@@ -3,6 +3,7 @@ import { listRequests } from "../lib/api/requests";
 import { ApiError } from "../lib/api/client";
 import { useAuth } from "../app/providers/AuthProvider";
 import type { WorkflowRequest } from "../types/request";
+import { Link } from "react-router-dom";
 
 function formatStatusLabel(status?: string): string {
   if (!status) {
@@ -109,7 +110,9 @@ export function RequestsPage() {
               {requests.map((request) => (
                 <tr key={request.requestId}>
                   <td>{request.requestId}</td>
-                  <td>{request.title}</td>
+                  <td>
+                  <Link to={`/requests/${request.requestId}`}>{request.title}</Link>
+                  </td>
                   <td>{request.sourceLanguage}</td>
                   <td>{request.targetLanguage}</td>
                   <td>
