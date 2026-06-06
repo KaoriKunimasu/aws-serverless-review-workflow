@@ -11,6 +11,7 @@ FUNCTION_NAMES = [
     "list_requests",
     "create_request",
     "get_request_detail",
+    "update_request_status",
 ]
 
 

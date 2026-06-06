@@ -43,6 +43,7 @@ api_cors_allow_origins = [
 api_cors_allow_methods = [
   "GET",
   "POST",
+  "PATCH",
   "OPTIONS",
 ]
 
