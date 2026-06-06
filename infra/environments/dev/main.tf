@@ -17,7 +17,6 @@ locals {
   }
 }
 
-
 module "cognito" {
   source = "../../modules/cognito"
 
@@ -59,6 +58,12 @@ data "archive_file" "get_request_detail" {
   type        = "zip"
   source_dir  = "${local.function_dist_root}/get_request_detail"
   output_path = "${path.module}/get_request_detail.zip"
+}
+
+data "archive_file" "update_request_status" {
+  type        = "zip"
+  source_dir  = "${local.function_dist_root}/update_request_status"
+  output_path = "${path.module}/update_request_status.zip"
 }
 
 module "list_requests_function" {
@@ -190,6 +195,48 @@ module "get_request_detail_function" {
   )
 }
 
+module "update_request_status_function" {
+  source = "../../modules/lambda-function"
+
+  function_name    = "${local.name_prefix}-update-request-status"
+  description      = "Updates workflow request status in the dev environment."
+  runtime          = var.lambda_runtime
+  handler          = "handler.lambda_handler"
+  package_file     = data.archive_file.update_request_status.output_path
+  source_code_hash = data.archive_file.update_request_status.output_base64sha256
+
+  memory_size   = var.lambda_memory_size
+  timeout       = var.lambda_timeout_seconds
+  architectures = var.lambda_architectures
+
+  environment_variables = local.lambda_environment_base
+
+  log_retention_in_days = var.lambda_log_retention_in_days
+  log_format            = "JSON"
+  application_log_level = var.lambda_log_level
+  system_log_level      = "INFO"
+
+  extra_policy_statements = [
+    {
+      sid    = "UpdateWorkflowTable"
+      effect = "Allow"
+      actions = [
+        "dynamodb:UpdateItem"
+      ]
+      resources = [
+        module.dynamodb.table_arn
+      ]
+    }
+  ]
+
+  tags = merge(
+    local.common_tags,
+    {
+      Component = "update-request-status"
+    }
+  )
+}
+
 module "api" {
   source = "../../modules/api"
 
@@ -229,9 +276,16 @@ module "api" {
     }
 
     "GET /requests/{requestId}" = {
-      integration_uri     = module.get_request_detail_function.invoke_arn
-      function_name       = module.get_request_detail_function.function_name
-      authorization_type  = "JWT"
+      integration_uri      = module.get_request_detail_function.invoke_arn
+      function_name        = module.get_request_detail_function.function_name
+      authorization_type   = var.api_enable_jwt_authorizer ? "JWT" : "NONE"
+      authorization_scopes = []
+    }
+
+    "PATCH /requests/{requestId}/status" = {
+      integration_uri      = module.update_request_status_function.invoke_arn
+      function_name        = module.update_request_status_function.function_name
+      authorization_type   = var.api_enable_jwt_authorizer ? "JWT" : "NONE"
       authorization_scopes = []
     }
   }

@@ -1,5 +1,7 @@
-import { apiFetch } from "./client";
 import type { ListRequestsResponse, WorkflowRequest } from "../../types/request";
+import { apiFetch } from "./client";
+
+export type RequestStatus = "OPEN" | "IN_REVIEW" | "APPROVED" | "REJECTED";
 
 export type CreateRequestPayload = {
   title: string;
@@ -29,6 +31,16 @@ export type RequestDetail = {
 };
 
 export type CreateRequestResponse = {
+  item: RequestDetail;
+  message?: string;
+};
+
+export type UpdateRequestStatusPayload = {
+  status: RequestStatus;
+  reviewerNote?: string;
+};
+
+export type UpdateRequestStatusResponse = {
   item: RequestDetail;
   message?: string;
 };
@@ -150,6 +162,19 @@ function normalizeDetailResponse(value: unknown): RequestDetail {
   return normalizeDetail(value);
 }
 
+function normalizeUpdateResponse(value: unknown): UpdateRequestStatusResponse {
+  if (isRecord(value) && value.item) {
+    return {
+      item: normalizeDetail(value.item),
+      message: readOptionalString(value.message),
+    };
+  }
+
+  return {
+    item: normalizeDetail(value),
+  };
+}
+
 export async function listRequests(
   accessToken: string,
 ): Promise<ListRequestsResponse> {
@@ -184,4 +209,18 @@ export async function getRequestDetail(
   });
 
   return normalizeDetailResponse(response);
+}
+
+export async function updateRequestStatus(
+  accessToken: string,
+  requestId: string,
+  payload: UpdateRequestStatusPayload,
+): Promise<UpdateRequestStatusResponse> {
+  const response = await apiFetch<unknown>(`/requests/${requestId}/status`, {
+    method: "PATCH",
+    accessToken,
+    body: payload,
+  });
+
+  return normalizeUpdateResponse(response);
 }
