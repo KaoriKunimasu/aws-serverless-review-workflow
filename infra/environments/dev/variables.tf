@@ -267,3 +267,27 @@ variable "api_jwt_identity_source" {
   type        = list(string)
   default     = ["$request.header.Authorization"]
 }
+
+variable "api_5xx_alarm_threshold" {
+  description = "Threshold for API Gateway 5xx alarm in dev."
+  type        = number
+  default     = 1
+}
+
+variable "lambda_error_alarm_threshold" {
+  description = "Threshold for Lambda Errors alarms in dev."
+  type        = number
+  default     = 1
+}
+
+variable "alarm_period_seconds" {
+  description = "CloudWatch alarm period in seconds."
+  type        = number
+  default     = 60
+}
+
+variable "alarm_evaluation_periods" {
+  description = "Number of evaluation periods for CloudWatch alarms."
+  type        = number
+  default     = 1
+}

@@ -15,6 +15,13 @@ locals {
     LOG_LEVEL           = var.lambda_log_level
     WORKFLOW_TABLE_NAME = module.dynamodb.table_name
   }
+
+  monitored_lambda_function_names = {
+    list_requests         = module.list_requests_function.function_name
+    create_request        = module.create_request_function.function_name
+    get_request_detail    = module.get_request_detail_function.function_name
+    update_request_status = module.update_request_status_function.function_name
+  }
 }
 
 module "cognito" {
@@ -297,3 +304,56 @@ module "api" {
     }
   )
 }
+
+resource "aws_cloudwatch_metric_alarm" "api_5xx_errors" {
+  alarm_name          = "${local.name_prefix}-api-5xx-errors"
+  alarm_description   = "Alarm when the dev HTTP API returns 5xx responses."
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = var.alarm_evaluation_periods
+  threshold           = var.api_5xx_alarm_threshold
+  period              = var.alarm_period_seconds
+  namespace           = "AWS/ApiGateway"
+  metric_name         = "5xx"
+  statistic           = "Sum"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    ApiId = module.api.api_id
+    Stage = var.api_stage_name
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Component = "monitoring"
+    }
+  )
+}
+
+resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
+  for_each = local.monitored_lambda_function_names
+
+  alarm_name          = "${local.name_prefix}-${each.key}-errors"
+  alarm_description   = "Alarm when the ${each.key} Lambda function returns errors."
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = var.alarm_evaluation_periods
+  threshold           = var.lambda_error_alarm_threshold
+  period              = var.alarm_period_seconds
+  namespace           = "AWS/Lambda"
+  metric_name         = "Errors"
+  statistic           = "Sum"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    FunctionName = each.value
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Component = "monitoring"
+      Function  = each.key
+    }
+  )
+}
+

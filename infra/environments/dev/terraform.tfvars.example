@@ -64,3 +64,8 @@ api_jwt_authorizer_name = "cognito-jwt-authorizer"
 api_jwt_identity_source = [
   "$request.header.Authorization",
 ]
+
+api_5xx_alarm_threshold     = 1
+lambda_error_alarm_threshold = 1
+alarm_period_seconds        = 60
+alarm_evaluation_periods    = 1
