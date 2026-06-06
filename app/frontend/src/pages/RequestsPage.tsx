@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { listRequests } from "../lib/api/requests";
-import { ApiError } from "../lib/api/client";
-import { useAuth } from "../app/providers/AuthProvider";
-import type { WorkflowRequest } from "../types/request";
 import { Link } from "react-router-dom";
+import { useAuth } from "../app/providers/AuthProvider";
+import { ApiError } from "../lib/api/client";
+import { listRequests } from "../lib/api/requests";
+import type { WorkflowRequest } from "../types/request";
 
 function formatStatusLabel(status?: string): string {
   if (!status) {
@@ -13,6 +13,10 @@ function formatStatusLabel(status?: string): string {
   return status.replaceAll("_", " ");
 }
 
+function normalizeStatus(status?: string): string {
+  return (status ?? "submitted").toLowerCase();
+}
+
 export function RequestsPage() {
   const { session } = useAuth();
   const accessToken = session?.accessToken ?? "";
@@ -20,8 +24,39 @@ export function RequestsPage() {
   const [requests, setRequests] = useState<WorkflowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const hasAccessToken = useMemo(() => accessToken.length > 0, [accessToken]);
+
+  const filteredRequests = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return requests.filter((request) => {
+      const normalizedRequestStatus = normalizeStatus(request.status);
+
+      const matchesStatus =
+        statusFilter === "all" ? true : normalizedRequestStatus === statusFilter;
+
+      const searchableText = [
+        request.requestId,
+        request.title,
+        request.sourceLanguage,
+        request.targetLanguage,
+        normalizedRequestStatus,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch =
+        normalizedSearch.length === 0
+          ? true
+          : searchableText.includes(normalizedSearch);
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [requests, searchTerm, statusFilter]);
 
   const loadRequests = useCallback(async () => {
     if (!hasAccessToken) {
@@ -67,12 +102,17 @@ export function RequestsPage() {
           <input
             className="input"
             type="text"
-            placeholder="Search requests"
-            disabled
+            placeholder="Search by request ID, title, language, or status"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
           />
 
-          <select className="input" disabled defaultValue="">
-            <option value="">All statuses</option>
+          <select
+            className="input"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            <option value="all">All statuses</option>
             <option value="draft">Draft</option>
             <option value="submitted">Submitted</option>
             <option value="in_review">In Review</option>
@@ -85,6 +125,10 @@ export function RequestsPage() {
           </button>
         </div>
 
+        <p style={{ margin: "0 0 1rem", color: "#555" }}>
+          Showing {filteredRequests.length} of {requests.length} requests
+        </p>
+
         {errorMessage ? (
           <div className="card" style={{ marginBottom: "1rem", color: "#b00020" }}>
             {errorMessage}
@@ -93,6 +137,13 @@ export function RequestsPage() {
 
         {!loading && !errorMessage && requests.length === 0 ? (
           <div className="card">No requests found yet.</div>
+        ) : null}
+
+        {!loading &&
+        !errorMessage &&
+        requests.length > 0 &&
+        filteredRequests.length === 0 ? (
+          <div className="card">No matching requests found.</div>
         ) : null}
 
         <div className="table-wrapper">
@@ -107,17 +158,19 @@ export function RequestsPage() {
               </tr>
             </thead>
             <tbody>
-              {requests.map((request) => (
+              {filteredRequests.map((request) => (
                 <tr key={request.requestId}>
                   <td>{request.requestId}</td>
                   <td>
-                  <Link to={`/requests/${request.requestId}`}>{request.title}</Link>
+                    <Link to={`/requests/${request.requestId}`}>{request.title}</Link>
                   </td>
                   <td>{request.sourceLanguage}</td>
                   <td>{request.targetLanguage}</td>
                   <td>
                     <span
-                      className={`status-badge status-badge--${request.status ?? "submitted"}`}
+                      className={`status-badge status-badge--${normalizeStatus(
+                        request.status,
+                      )}`}
                     >
                       {formatStatusLabel(request.status)}
                     </span>
