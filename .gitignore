@@ -51,3 +51,8 @@ app/functions/.dist/*
 app/functions/*.zip
 
 infra/environments/dev/*.zip
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
