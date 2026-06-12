@@ -132,3 +132,19 @@ The core workflow is implemented in the dev environment.
 - Runbooks
 - ADRs
 - Demo assets
+
+## Screenshots
+
+A short walkthrough of the main workflow.
+
+### Sign in (Amazon Cognito)
+![Login screen](docs/demo/01-login.png)
+
+### Create a review request
+![New request form](docs/demo/02-new-request.png)
+
+### Track and filter requests
+![Requests list filtered by status](docs/demo/03-requests-filtered.png)
+
+### Update review status
+![Review update](docs/demo/04-review-update.png)
