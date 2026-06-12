@@ -98,7 +98,7 @@ def lambda_handler(event, context):
             ConditionExpression="attribute_not_exists(PK)",
         )
     except table.meta.client.exceptions.ConditionalCheckFailedException:
-        logger.warning("Request ID collision detected for PK=%s", item["pk"])
+        logger.warning("Request ID collision detected for PK=%s", item["PK"])
         return error_response(409, "A request with the same ID already exists.")
     except ClientError:
         logger.exception("Failed to create workflow request.")
