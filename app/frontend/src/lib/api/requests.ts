@@ -69,23 +69,11 @@ function normalizeListItem(value: unknown): WorkflowRequest {
   const source = isRecord(value) ? value : {};
 
   return {
-    requestId: readString(
-      source.requestId ?? source.id ?? source.PK ?? source.request_id,
-      "unknown-request-id",
-    ),
+    requestId: readString(source.requestId, "unknown-request-id"),
     title: readString(source.title, "Untitled request"),
-    description: readString(
-      source.description ?? source.sourceText ?? source.body,
-      "",
-    ),
-    sourceLanguage: readString(
-      source.sourceLanguage ?? source.source_language,
-      "ja",
-    ),
-    targetLanguage: readString(
-      source.targetLanguage ?? source.target_language,
-      "en",
-    ),
+    description: readString(source.sourceText, ""),
+    sourceLanguage: readString(source.sourceLanguage, "ja"),
+    targetLanguage: readString(source.targetLanguage, "en"),
     status: readOptionalString(source.status),
     createdAt: readString(source.createdAt, new Date(0).toISOString()),
     createdBy: readOptionalString(source.createdBy),
@@ -131,6 +119,7 @@ function normalizeListResponse(value: unknown): ListRequestsResponse {
       items,
       count: readNumber(value.count, items.length),
       hasMore: readBoolean(value.hasMore, false),
+      cursor: readOptionalString(value.cursor),
     };
   }
 

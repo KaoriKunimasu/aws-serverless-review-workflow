@@ -1,3 +1,5 @@
+import base64
+import json
 import logging
 import os
 
@@ -32,6 +34,26 @@ def parse_limit(event: dict) -> int:
     return limit
 
 
+def parse_cursor(event: dict) -> dict | None:
+    raw_cursor = (
+        event.get("queryStringParameters", {}) or {}
+    ).get("cursor")
+
+    if raw_cursor is None:
+        return None
+
+    try:
+        decoded = base64.urlsafe_b64decode(raw_cursor.encode("utf-8"))
+        return json.loads(decoded)
+    except (ValueError, json.JSONDecodeError):
+        raise ValueError("cursor is invalid.")
+
+
+def encode_cursor(last_evaluated_key: dict) -> str:
+    encoded = json.dumps(last_evaluated_key).encode("utf-8")
+    return base64.urlsafe_b64encode(encoded).decode("utf-8")
+
+
 def to_response_item(item: dict) -> dict:
     return {
         "requestId": item.get("requestId"),
@@ -56,13 +78,18 @@ def lambda_handler(event, context):
 
     try:
         limit = parse_limit(event)
+        cursor = parse_cursor(event)
     except ValueError as exc:
         return error_response(400, str(exc))
 
     table = dynamodb.Table(table_name)
 
+    scan_kwargs = {"Limit": limit}
+    if cursor is not None:
+        scan_kwargs["ExclusiveStartKey"] = cursor
+
     try:
-        response = table.scan(Limit=limit)
+        response = table.scan(**scan_kwargs)
     except ClientError:
         logger.exception("Failed to list workflow requests.")
         return error_response(500, "Failed to list workflow requests.")
@@ -75,11 +102,16 @@ def lambda_handler(event, context):
         reverse=True,
     )
 
+    last_evaluated_key = response.get("LastEvaluatedKey")
+
     return json_response(
         200,
         {
             "items": normalized_items,
             "count": len(normalized_items),
-            "hasMore": "LastEvaluatedKey" in response,
+            "hasMore": last_evaluated_key is not None,
+            "cursor": encode_cursor(last_evaluated_key)
+            if last_evaluated_key is not None
+            else None,
         },
     )
