@@ -4,11 +4,11 @@
 
 This project is a serverless internal workflow application built on AWS for technical terminology and document review processes.
 
-It uses Terraform, Amazon Cognito, API Gateway, AWS Lambda, DynamoDB, S3, CloudFront, CloudWatch, SNS, and GitHub Actions.
+It uses Terraform, Amazon Cognito, API Gateway, AWS Lambda, DynamoDB, and CloudWatch today, with S3, CloudFront, SNS, and GitHub Actions planned (see [Status](#status)).
 
 ## Architecture
 
-The application uses CloudFront and S3 for the frontend, Cognito for authentication, API Gateway and Lambda for backend processing, DynamoDB for data storage, and CloudWatch/SNS for monitoring and alerts.
+The dev environment uses Cognito for authentication, API Gateway and Lambda for backend processing, DynamoDB for data storage, and CloudWatch for monitoring and alerts. The frontend currently runs from a local dev server; S3/CloudFront hosting, SNS alerting, and a CI/CD pipeline are planned follow-ups, not yet provisioned.
 
 ![Architecture diagram](diagrams/architecture-overview.png)
 
@@ -29,11 +29,11 @@ The application uses CloudFront and S3 for the frontend, Cognito for authenticat
 - API Gateway HTTP API
 - AWS Lambda
 - DynamoDB
-- S3
-- CloudFront
 - CloudWatch
-- SNS
-- GitHub Actions
+- S3 (planned)
+- CloudFront (planned)
+- SNS (planned)
+- GitHub Actions (planned)
 
 ## Repository Structure
 
@@ -66,9 +66,12 @@ For local setup, Terraform apply and destroy steps, frontend environment variabl
 
 - JWT-protected API routes
 - Least-privilege IAM design
-- OIDC authentication from GitHub Actions to AWS
 - No long-lived AWS credentials in source control
 - Remote Terraform state with locking
+- OIDC authentication from GitHub Actions to AWS (planned, see Status)
+- Authentication is enforced server-side, but there is no per-owner
+  authorization yet: any signed-in user can view and update any request in
+  the shared queue (see [frontend-auth.md](docs/architecture/frontend-auth.md))
 
 ## Cost Considerations
 

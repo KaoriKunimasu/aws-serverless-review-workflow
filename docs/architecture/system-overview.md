@@ -1,5 +1,11 @@
 # System Overview
 
+> This document describes the target end-state architecture. For what is
+> actually implemented in the dev environment today, see the "Status"
+> section of the top-level [README](../../README.md). Notably, the S3/
+> CloudFront frontend hosting, SNS notifications, the dashboard summary
+> Lambda, and the GitHub Actions/OIDC deployment pipeline are not yet built.
+
 ## Summary
 
 This repository contains a serverless web application for managing review requests for technical terms and related content.
