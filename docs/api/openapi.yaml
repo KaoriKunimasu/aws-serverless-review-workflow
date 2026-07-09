@@ -40,18 +40,6 @@ paths:
         - bearerAuth: []
       parameters:
         - in: query
-          name: status
-          required: false
-          schema:
-            type: string
-            enum:
-              - draft
-              - submitted
-              - in_review
-              - approved
-              - rejected
-              - archived
-        - in: query
           name: limit
           required: false
           schema:
@@ -59,6 +47,12 @@ paths:
             default: 20
             minimum: 1
             maximum: 100
+        - in: query
+          name: cursor
+          required: false
+          schema:
+            type: string
+          description: Opaque pagination cursor returned by a previous call.
       responses:
         '200':
           description: List of review requests
@@ -223,12 +217,10 @@ components:
         status:
           type: string
           enum:
-            - draft
-            - submitted
-            - in_review
-            - approved
-            - rejected
-            - archived
+            - OPEN
+            - IN_REVIEW
+            - APPROVED
+            - REJECTED
         reviewerNote:
           type: string
           nullable: true
@@ -287,12 +279,10 @@ components:
         status:
           type: string
           enum:
-            - draft
-            - submitted
-            - in_review
-            - approved
-            - rejected
-            - archived
+            - OPEN
+            - IN_REVIEW
+            - APPROVED
+            - REJECTED
         reviewerNote:
           type: string
           example: Approved after terminology review.
@@ -309,11 +299,22 @@ components:
       type: object
       required:
         - items
+        - count
+        - hasMore
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/ReviewRequest'
+        count:
+          type: integer
+          example: 20
+        hasMore:
+          type: boolean
+        cursor:
+          type: string
+          nullable: true
+          description: Opaque pagination cursor. Pass back as the `cursor` query parameter to fetch the next page.
 
     DashboardSummaryResponse:
       type: object

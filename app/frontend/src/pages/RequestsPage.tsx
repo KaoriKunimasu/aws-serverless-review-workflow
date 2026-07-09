@@ -7,14 +7,14 @@ import type { WorkflowRequest } from "../types/request";
 
 function formatStatusLabel(status?: string): string {
   if (!status) {
-    return "submitted";
+    return "open";
   }
 
   return status.replaceAll("_", " ");
 }
 
 function normalizeStatus(status?: string): string {
-  return (status ?? "submitted").toLowerCase();
+  return (status ?? "open").toLowerCase();
 }
 
 export function RequestsPage() {
@@ -113,8 +113,7 @@ export function RequestsPage() {
             onChange={(event) => setStatusFilter(event.target.value)}
           >
             <option value="all">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
+            <option value="open">Open</option>
             <option value="in_review">In Review</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
