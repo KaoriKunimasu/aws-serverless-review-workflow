@@ -52,8 +52,7 @@ aws-serverless-review-workflow/
 │  ├─ runbooks/
 │  └─ demo/
 ├─ tests/
-├─ diagrams/
-└─ .github/workflows/
+└─ diagrams/
 ```
 
 ## Local Development
@@ -94,7 +93,7 @@ Rationale and the alternatives considered are in
 
 - Serverless-first design to keep idle cost low
 - DynamoDB on-demand billing
-- Static frontend delivery through S3 and CloudFront
+- Static frontend delivery through S3 and CloudFront (planned)
 - No always-on compute in the MVP
 - Dev resources can be destroyed after validation
 
