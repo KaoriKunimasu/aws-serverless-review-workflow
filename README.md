@@ -62,12 +62,29 @@ For local setup, Terraform apply and destroy steps, frontend environment variabl
 
 [docs/local-development.md](docs/local-development.md)
 
+## Remote state
+
+Terraform state for the dev environment lives in S3, with a DynamoDB table for
+locking. The bucket and lock table are the ones provisioned by the bootstrap in
+[aws-infrastructure-core](https://github.com/KaoriKunimasu/aws-infrastructure-core)
+(`bootstrap/backend`); this repo just points at them. Backend values are kept in
+a gitignored `backend.hcl` (template: `infra/environments/dev/backend.hcl.example`):
+
+```bash
+cd infra/environments/dev
+cp backend.hcl.example backend.hcl   # fill in the real bucket and lock table
+terraform init -backend-config=backend.hcl
+```
+
+Rationale and the alternatives considered are in
+[docs/adr/0002-remote-state.md](docs/adr/0002-remote-state.md).
+
 ## Security Considerations
 
 - JWT-protected API routes
 - Least-privilege IAM design
 - No long-lived AWS credentials in source control
-- Remote Terraform state with locking
+- Remote Terraform state in S3 with DynamoDB locking (see [Remote state](#remote-state))
 - OIDC authentication from GitHub Actions to AWS (planned, see Status)
 - Authentication is enforced server-side, but there is no per-owner
   authorization yet: any signed-in user can view and update any request in
