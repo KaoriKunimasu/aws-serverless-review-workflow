@@ -1,0 +1,9 @@
+# Copy to backend.hcl (gitignored) and fill in the real values.
+# The state bucket and DynamoDB lock table are provisioned by the bootstrap in
+# aws-infrastructure-core (bootstrap/backend) — use its outputs, or point at any
+# S3 bucket + DynamoDB lock table you control.
+bucket         = "replace-with-state-bucket"
+key            = "aws-serverless-review-workflow/dev/terraform.tfstate"
+region         = "ap-southeast-2"
+dynamodb_table = "replace-with-lock-table"
+encrypt        = true

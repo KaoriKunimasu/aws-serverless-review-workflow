@@ -30,6 +30,8 @@ venv/
 .terraform/
 *.tfstate
 *.tfstate.*
+backend.hcl
+!backend.hcl.example
 crash.log
 override.tf
 override.tf.json
